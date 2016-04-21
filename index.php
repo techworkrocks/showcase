@@ -5,6 +5,8 @@
     <title>JQuery Test
     </title>
 <?
+   // this variable defines the path relative to this script's path were to look for 
+   // image files
    $dir = '00000';
    if ($handle = opendir($dir)) {
    $pics = array ();
@@ -16,6 +18,7 @@
     sort($pics);
    }
     ?>
+    
 <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
 <script src="//code.jquery.com/jquery-1.10.2.js"></script>
 <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
@@ -101,7 +104,7 @@ $(function() {
   position: absolute;
   z-index:4;
   border-radius: 1%;
-  box-shadow: 0 0 0 7px rgba(128, 128, 128, 0.85), 0 0 7px 7px rgba(0, 0, 0, 0.25), inset 0 0 40px 2px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 0 0 5px rgba(128, 128, 128, 0.85), 0 0 5px 5px rgba(0, 0, 0, 0.25), inset 0 0 30px 2px rgba(0, 0, 0, 0.25);
   display: none;
   } 
 </style>   
