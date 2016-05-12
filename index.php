@@ -2,12 +2,23 @@
 <html>
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>JQuery Test
-    </title>
+    <title>Gem Display</title>
 <?
+   // determine available dirs
+   if ($handle = opendir(".")) {
+   $dirs = array ();
+    while (false !== ($entry = readdir($handle))) {
+       if(strpos($entry, '.')!==0 && is_dir($entry))
+        $dirs[] =  $entry;
+    }
+    closedir($handle);
+    sort($dirs);
+   }
+   
+
    // this variable defines the path relative to this script's path were to look for 
    // image files
-   $dir = '00000';
+   $dir = isset($_GET['d']) ? $_GET['d'] : $dirs[0];
    if ($handle = opendir($dir)) {
    $pics = array ();
     while (false !== ($entry = readdir($handle))) {
@@ -22,6 +33,7 @@
 <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
 <script src="//code.jquery.com/jquery-1.10.2.js"></script>
 <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+<script src="jquery.ui.touch-punch.min.js"></script>
 
 <script>
 var imgURLs =  [ <?
@@ -33,14 +45,32 @@ var imgURLs =  [ <?
  ?> ];
  
  var imgObjs = [];
+ var imgsToLoad = 0;
  jQuery.each(imgURLs, function(i, imgURL) {
+   imgsToLoad++;
    var img = new Image();
    img.src = imgURL;
-   img.width = 600;
+   img.width = 480;
    img.id = 'img' + i;
    img.className = 'small';
+   img.onload = function() {
+       imgsToLoad--;
+       if(imgsToLoad > 0)
+          $("#output").html("<span class='alert'>"+imgsToLoad + " images left to load</span>");
+       else
+          $("#output").html("");
+   };
    imgObjs.push(img); 
   });
+  
+$(function() {
+    $( "#scene" ).selectmenu({
+      change: function(event, data) {
+        location.href="?d="+data.item.value;
+      }
+      });
+});
+  
 $(function() {
     $( "#slider" ).slider({
       value:<?=floor($len/2) ?>,
@@ -57,13 +87,20 @@ $(function() {
       }
     });
   });
+  
+$("#slider").draggable();
+  
  native_width = 0;
  native_height = 0;
  fade_threshold = 20;
   
+  
+  
   // Magnifier code
   $(document).ready(function(){
   $(".magnified").css("background","url('" + $(".small").attr("src") + "') no-repeat");
+  
+  
 	$(".magnify").mousemove(function(e){
 		if(!native_width && !native_height)
 		{
@@ -94,10 +131,11 @@ $(function() {
 			}
 		}
 	})
+  
 });
 </script>
 <style>
-.magnify {position: relative; cursor: none;}
+.magnify {position: relative; } // cursor: none;}
 .magnified {
   width: 240px;
   height: 200px;
@@ -106,20 +144,39 @@ $(function() {
   border-radius: 1%;
   box-shadow: 0 0 0 5px rgba(128, 128, 128, 0.85), 0 0 5px 5px rgba(0, 0, 0, 0.25), inset 0 0 30px 2px rgba(0, 0, 0, 0.25);
   display: none;
-  } 
+  }
+.ui-slider .ui-slider-handle { height: 20px; width: 20px; padding-top: 10px; padding-left: 10px}
+body { font-family: sans-serif; }
+select { width: 200px; } 
+    label {
+      margin: 30px 0 0 0;
+      display: block;
+      font-size: 12pt;
+    }
+.alert { color: #ff0000; }
 </style>   
   </head>
   <body>
-    <div style="width: 600px" class="magnify">
+  <label for="scene">Select Scene</label>
+    <select name="scene" id="scene">
+    <? foreach($dirs as $ldir): ?>
+      <option <?= ($ldir==$dir ? 'selected="selected"' : '') ?>><?=$ldir?></option>
+    <? endforeach; ?>  
+    </select>&nbsp; &nbsp;
+    <span id="output">
+    </span>
+    <br><br>
+  
+    <div style="width: 480px" class="magnify">
       <div class="magnified">
       </div>
       <div id="display">
-        <img class="small" style="width: 600px" src="<?=$pics[sizeof($pics)/2] ?>">
+        <img class="small" style="width: 480px" src="<?=$pics[sizeof($pics)/2] ?>">
       </div>
     </div>
-    <div style="width: 600px" id="slider">
+    <p>&nbsp;</p>
+    <div style="width: 480px" id="slider">
     </div>
-    <div id="output">
-    </div>
+    <br>
   </body>
 </html>
