@@ -2,6 +2,7 @@
 <html>
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width"/>
     <title>Gem Display</title>
 <?
    // determine available dirs
@@ -14,7 +15,6 @@
     closedir($handle);
     sort($dirs);
    }
-   
 
    // this variable defines the path relative to this script's path were to look for 
    // image files
@@ -28,13 +28,13 @@
     closedir($handle);
     sort($pics);
    }
-    ?>
-    
+?>
+   
 <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
 <script src="//code.jquery.com/jquery-1.10.2.js"></script>
-<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
-<script src="jquery.ui.touch-punch.min.js"></script>
-
+<? $version = "1.4.5"; ?>
+<link rel="stylesheet" href="https://code.jquery.com/mobile/<?=$version?>/jquery.mobile-<?=$version?>.min.css">
+<script src="https://code.jquery.com/mobile/<?=$version?>/jquery.mobile-<?=$version?>.min.js"></script>
 <script>
 var imgURLs =  [ <?
   $i=0; $len=count($pics);
@@ -44,6 +44,12 @@ var imgURLs =  [ <?
   } 
  ?> ];
  
+$(function(){   
+   $("#scene").change( function(event, ui) {
+     location.href="?d="+$(this).val();
+   });
+});  
+
  var imgObjs = [];
  var imgsToLoad = 0;
  jQuery.each(imgURLs, function(i, imgURL) {
@@ -55,128 +61,48 @@ var imgURLs =  [ <?
    img.className = 'small';
    img.onload = function() {
        imgsToLoad--;
-       if(imgsToLoad > 0)
-          $("#output").html("<span class='alert'>"+imgsToLoad + " images left to load</span>");
-       else
+       if(imgsToLoad > 0) {
+          $("#progressbar").html("<span class='alert'>Loading ... ("+imgsToLoad + " left)</span>");
+          //progressValue =  100*(imgObjs.length-imgsToLoad)/imgObjs.length;
+          //$( "#progressbar" ).progressbar("value", progressValue);
+       } else  {
+          $("#progressbar").html("");
           $("#output").html("");
+       }
    };
    imgObjs.push(img); 
   });
-  
+
 $(function() {
-    $( "#scene" ).selectmenu({
-      change: function(event, data) {
-        location.href="?d="+data.item.value;
-      }
-      });
-});
-  
-$(function() {
-    $( "#slider" ).slider({
-      value:<?=floor($len/2) ?>,
-      min: 0,
-      max: <?=$len-1 ?>,
-      step: 1,
-      slide: function( event, ui ) {
-        $( "#display" ).html(imgObjs[ui.value]);
-        $ ("#output").html(ui.value);
-        native_width = 0;
-        native_height = 0;        
-        $(".magnified").fadeOut(100);
-        $(".magnified").css("background","url('" + imgObjs[ui.value].src + "') no-repeat");
-      }
-    });
+  $('#slider').change(function(event) {
+        $( "#display" ).html(imgObjs[event.target.value]);
   });
-  
-$("#slider").draggable();
-  
- native_width = 0;
- native_height = 0;
- fade_threshold = 20;
-  
-  
-  
-  // Magnifier code
-  $(document).ready(function(){
-  $(".magnified").css("background","url('" + $(".small").attr("src") + "') no-repeat");
-  
-  
-	$(".magnify").mousemove(function(e){
-		if(!native_width && !native_height)
-		{
-			var image_object = new Image();
-			image_object.src = $(".small").attr("src");
-			native_width = image_object.width;
-			native_height = image_object.height;
-		}
-		else
-		{
-			var magnify_offset = $(this).offset();
-			var mx = e.pageX - magnify_offset.left;
-			var my = e.pageY - magnify_offset.top;
-			
-			if(mx < $(this).width()-fade_threshold && my < $(this).height()-fade_threshold && mx > fade_threshold && my > fade_threshold)
-				$(".magnified").fadeIn(500);
-			else
-				$(".magnified").fadeOut(500);
-			if($(".magnified").is(":visible"))
-			{
-				var rx = Math.round(mx/$(".small").width()*native_width - $(".magnified").width()/2)*-1;
-				var ry = Math.round(my/$(".small").height()*native_height - $(".magnified").height()/2)*-1;
-				var bgp = rx + "px " + ry + "px";
-				
-				var px = mx - $(".magnified").width()/2;
-				var py = my - $(".magnified").height()/2;
-        $(".magnified").css({left: px, top: py, backgroundPosition: bgp});
-			}
-		}
-	})
-  
 });
+
 </script>
 <style>
-.magnify {position: relative; } // cursor: none;}
-.magnified {
-  width: 240px;
-  height: 200px;
-  position: absolute;
-  z-index:4;
-  border-radius: 1%;
-  box-shadow: 0 0 0 5px rgba(128, 128, 128, 0.85), 0 0 5px 5px rgba(0, 0, 0, 0.25), inset 0 0 30px 2px rgba(0, 0, 0, 0.25);
-  display: none;
-  }
+img { text-align: center; width: 80%; max-width: 640px; padding: 10px; }
 .ui-slider .ui-slider-handle { height: 20px; width: 20px; padding-top: 10px; padding-left: 10px}
-body { font-family: sans-serif; }
-select { width: 200px; } 
-    label {
-      margin: 30px 0 0 0;
-      display: block;
-      font-size: 12pt;
-    }
-.alert { color: #ff0000; }
+body { font-family: sans-serif; text-align: center; }
+select { width: 360px; } 
+label { margin: 30px 0 0 0; display: block; font-size: 12pt;   }
+.alert { font-family: sans-serif; font-size: 14pt; color: #ff0000; }
 </style>   
   </head>
   <body>
-  <label for="scene">Select Scene</label>
-    <select name="scene" id="scene">
+    <div class="ui-field-contain">
+    <select name="scene" id="scene" class="select">
     <? foreach($dirs as $ldir): ?>
       <option <?= ($ldir==$dir ? 'selected="selected"' : '') ?>><?=$ldir?></option>
     <? endforeach; ?>  
-    </select>&nbsp; &nbsp;
-    <span id="output">
-    </span>
+    </select>
+    </div>
     <br><br>
-  
-    <div style="width: 480px" class="magnify">
-      <div class="magnified">
+    <div id="progressbar"></div>
+      <div id="display" style="width: 100%; ">
+        <img style="text-align: center; border: 1px" src="<?=$pics[sizeof($pics)/2] ?>">
       </div>
-      <div id="display">
-        <img class="small" style="width: 480px" src="<?=$pics[sizeof($pics)/2] ?>">
-      </div>
-    </div>
-    <p>&nbsp;</p>
-    <div style="width: 480px" id="slider">
-    </div>
+    <input type="range" name="slider" id="slider" value="<?=floor($len/2) ?>" min="0" max="<?=$len-1 ?>" />
     <br>
   </body>
 </html>
