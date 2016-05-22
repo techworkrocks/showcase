@@ -30,11 +30,11 @@
    }
 ?>
    
-<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
-<script src="//code.jquery.com/jquery-1.10.2.js"></script>
+<link rel="stylesheet" href="jquery-ui.css">
+<script src="jquery-1.10.2.js"></script>
 <? $version = "1.4.5"; ?>
-<link rel="stylesheet" href="https://code.jquery.com/mobile/<?=$version?>/jquery.mobile-<?=$version?>.min.css">
-<script src="https://code.jquery.com/mobile/<?=$version?>/jquery.mobile-<?=$version?>.min.js"></script>
+<link rel="stylesheet" href="jquery.mobile-<?=$version?>.min.css">
+<script src="jquery.mobile-<?=$version?>.min.js"></script>
 <script>
 var imgURLs =  [ <?
   $i=0; $len=count($pics);
@@ -43,6 +43,38 @@ var imgURLs =  [ <?
     $i++;
   } 
  ?> ];
+ 
+moveHandler = function(e){
+    //$("#magnifier").html($('#originalImage').height);
+    //imgX = e.pageX - e.target.x;
+    //imgY = e.pageY - e.target.y;
+    originalImage = $("#originalImage");
+    magnifier = $("#magnifier");
+    
+    offset = originalImage.offset(); 
+
+    imgX = e.pageX - offset.left;
+    imgY = e.pageY - offset.top;
+    
+    if(imgX < 0 || imgY < 0 || imgX > originalImage.width() || imgY > originalImage.height()) {
+      magnifier.css({ display: "none" });
+      return;
+    }
+    
+    magnWidth = magnifier.width();
+    magnHeight = magnifier.height();
+    
+    scale = imgObjs[curIndex].naturalWidth / originalImage.width();
+    px = -Math.max(0, imgX * scale - magnWidth / 2);
+    py = -Math.max(0, imgY * scale - magnHeight / 2);
+    //magnifier.html(imgX + ";" + imgY);  
+    
+    var posX = e.pageX - magnWidth/2;
+    var posY = e.pageY - magnHeight/2;
+    
+    var bgp = px + "px " + py + "px";
+    magnifier.css({left: posX, top: posY, backgroundPosition: bgp, display: "block" });
+  }; 
  
 $(function(){   
    $("#scene").change( function(event, ui) {
@@ -57,7 +89,8 @@ $(function(){
    var img = new Image();
    img.src = imgURL;
    img.width = 480;
-   img.id = 'img' + i;
+   img.id = 'originalImage';
+   img.onmousemove = moveHandler;
    img.className = 'small';
    img.onload = function() {
        imgsToLoad--;
@@ -73,20 +106,31 @@ $(function(){
    imgObjs.push(img); 
   });
 
+curIndex = <?=floor(sizeof($pics)/2); ?>;
+
 $(function() {
   $('#slider').change(function(event) {
         $( "#display" ).html(imgObjs[event.target.value]);
+        curIndex = event.target.value;
+        $(".magnifier").css("background","url('" + $("#originalImage").attr("src") + "') no-repeat");
   });
+});
+
+$(document).ready(function() {
+  $("#originalImage").mousemove(moveHandler );
+  $("#magnifier").mousemove(moveHandler );
+  $(".magnifier").css("background","url('" + $("#originalImage").attr("src") + "') no-repeat");
 });
 
 </script>
 <style>
-img { text-align: center; width: 80%; max-width: 640px; padding: 10px; }
+img { text-align: center; width: 80%; max-width: 640px; padding: 0px; }
 .ui-slider .ui-slider-handle { height: 20px; width: 20px; padding-top: 10px; padding-left: 10px}
 body { font-family: sans-serif; text-align: center; }
 select { width: 360px; } 
 label { margin: 30px 0 0 0; display: block; font-size: 12pt;   }
 .alert { font-family: sans-serif; font-size: 14pt; color: #ff0000; }
+.magnifier { width: 360px; max-width: 33%; height: 270px; background-color: #bbbbbb; position: absolute; display: none }
 </style>   
   </head>
   <body>
@@ -100,9 +144,10 @@ label { margin: 30px 0 0 0; display: block; font-size: 12pt;   }
     <br><br>
     <div id="progressbar"></div>
       <div id="display" style="width: 100%; ">
-        <img style="text-align: center; border: 1px" src="<?=$pics[sizeof($pics)/2] ?>">
+        <img style="text-align: center; border: 1px" id="originalImage" src="<?=$pics[sizeof($pics)/2] ?>">
       </div>
     <input type="range" name="slider" id="slider" value="<?=floor($len/2) ?>" min="0" max="<?=$len-1 ?>" />
     <br>
+    <div id="magnifier" class="magnifier"></div>
   </body>
 </html>
