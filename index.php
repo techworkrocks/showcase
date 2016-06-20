@@ -22,7 +22,7 @@
    if ($handle = opendir($dir)) {
    $pics = array ();
     while (false !== ($entry = readdir($handle))) {
-       if($entry != '.' && $entry !='..')
+       if($entry != '.' && $entry !='..' && strpos($entry, ".jpg") == strlen($entry)-strlen(".jpg"))
         $pics[] =  $dir.'/'.$entry;
     }
     closedir($handle);
@@ -51,11 +51,17 @@ moveHandler = function(e){
     originalImage = $("#originalImage");
     magnifier = $("#magnifier");
     
+    if(originalImage.width() >= imgObjs[curIndex].naturalWidth) {
+      magnifier.css({ display: "none" });
+      return;
+    }
+    
     offset = originalImage.offset(); 
 
     imgX = e.pageX - offset.left;
     imgY = e.pageY - offset.top;
     
+    // hide magnifier if out of bounds
     if(imgX < 0 || imgY < 0 || imgX > originalImage.width() || imgY > originalImage.height()) {
       magnifier.css({ display: "none" });
       return;
@@ -88,7 +94,7 @@ $(function(){
    imgsToLoad++;
    var img = new Image();
    img.src = imgURL;
-   img.width = 480;
+   //img.width = 480;
    img.id = 'originalImage';
    img.onmousemove = moveHandler;
    img.className = 'small';
@@ -120,6 +126,15 @@ $(document).ready(function() {
   $("#originalImage").mousemove(moveHandler );
   $("#magnifier").mousemove(moveHandler );
   $(".magnifier").css("background","url('" + $("#originalImage").attr("src") + "') no-repeat");
+  
+  // load textual information
+  $.getJSON('<?=$dir ?>/info.json', function(data) {
+      $.each(data, function(index, element) {
+          $.each(element, function(key, value) {
+            $('#infotable').append('<tr><td class="tablekey">' + key + ':</td><td class="tablevalue">'+value+'</td></tr>');  
+          });
+      })
+  });
 });
 
 </script>
@@ -130,7 +145,11 @@ body { font-family: sans-serif; text-align: center; }
 select { width: 360px; } 
 label { margin: 30px 0 0 0; display: block; font-size: 12pt;   }
 .alert { font-family: sans-serif; font-size: 14pt; color: #ff0000; }
-.magnifier { width: 360px; max-width: 33%; height: 270px; background-color: #bbbbbb; position: absolute; display: none }
+.magnifier { width: 360px; max-width: 25%; height: 270px; max-height: 25%; background-color: #bbbbbb; position: absolute; display: none }
+#infotable { text-align: left; border-spacing: 5px; margin: 0 auto }
+.tablekey { background-color: #dddddd }
+.tablevalue { background-color: #eeeeee }
+
 </style>   
   </head>
   <body>
@@ -149,5 +168,7 @@ label { margin: 30px 0 0 0; display: block; font-size: 12pt;   }
     <input type="range" name="slider" id="slider" value="<?=floor($len/2) ?>" min="0" max="<?=$len-1 ?>" />
     <br>
     <div id="magnifier" class="magnifier"></div>
+    <table id="infotable">
+    </table>
   </body>
 </html>
