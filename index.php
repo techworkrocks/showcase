@@ -116,7 +116,8 @@ curIndex = <?=floor(sizeof($pics)/2); ?>;
 
 $(function() {
   $('#slider').change(function(event) {
-        $( "#display" ).html(imgObjs[event.target.value]);
+        //$( "#display" ).html(imgObjs[event.target.value]);
+        $( "#originalImage" ).attr("src", imgObjs[event.target.value].src);
         curIndex = event.target.value;
         $(".magnifier").css("background","url('" + $("#originalImage").attr("src") + "') no-repeat");
   });
